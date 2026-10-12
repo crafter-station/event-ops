@@ -1,0 +1,8 @@
+# Guest data never enters git: exports and enriched output carry personal data.
+*.csv
+*.json
+!package.json
+data/
+out/
+.DS_Store
+node_modules/
