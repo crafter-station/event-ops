@@ -1,0 +1,39 @@
+{
+  "name": "@crafter/event-ops",
+  "version": "0.2.0",
+  "description": "CLI for community tech events that sends one credit code to every attendee who checked in on Luma.",
+  "type": "module",
+  "bin": {
+    "event-ops": "bin/event-ops.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skill-data",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "biome check bin src test"
+  },
+  "keywords": [
+    "luma",
+    "events",
+    "cli",
+    "agents",
+    "codex",
+    "community"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crafter-station/event-ops.git"
+  },
+  "homepage": "https://github.com/crafter-station/event-ops",
+  "license": "MIT",
+  "author": "Crafter Station"
+}

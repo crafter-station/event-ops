@@ -2,6 +2,10 @@
 *.csv
 *.json
 !package.json
+!biome.json
+!site/vercel.json
+site/dist/
+.vercel/
 data/
 out/
 .DS_Store

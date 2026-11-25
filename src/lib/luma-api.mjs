@@ -1,4 +1,4 @@
-import { canonicalEmail, normalizeEmail } from "./core.mjs"
+import { canonicalEmail, normalizeEmail } from "./ledger.mjs"
 
 export const LUMA_PUBLIC_API_BASE = "https://public-api.luma.com/v1"
 
@@ -20,19 +20,13 @@ function normalizeLumaGuestPayload(raw) {
   if (!g) return null
   const lumaEmail = normalizeEmail(g.user_email ?? g.email)
   if (!lumaEmail) return null
-  const ticketCheckedIn = Array.isArray(g.event_tickets)
-    ? g.event_tickets.find((t) => t?.checked_in_at)?.checked_in_at ?? null
-    : null
+  const ticketCheckedIn = Array.isArray(g.event_tickets) ? (g.event_tickets.find((t) => t?.checked_in_at)?.checked_in_at ?? null) : null
   const checkedInAt = g.checked_in_at || ticketCheckedIn || null
   const chatgptEmail = extractChatgptFromAnswers(g.registration_answers)
   return {
     guestId: g.api_id || raw?.api_id || null,
     lumaEmail,
-    name:
-      g.user_name ||
-      g.name ||
-      [g.user_first_name, g.user_last_name].filter(Boolean).join(" ").trim() ||
-      lumaEmail.split("@")[0],
+    name: g.user_name || g.name || [g.user_first_name, g.user_last_name].filter(Boolean).join(" ").trim() || lumaEmail.split("@")[0],
     approvalStatus: String(g.approval_status || "approved").toLowerCase(),
     checkedInAt,
     chatgptEmail,
@@ -73,16 +67,13 @@ export function upsertNormalizedGuest(ledger, norm) {
   return "added"
 }
 
-export async function syncLumaEventGuests(
-  ledger,
-  { apiKey, eventId, apiBase = LUMA_PUBLIC_API_BASE, fetchImpl = fetch } = {}
-) {
+export async function syncLumaEventGuests(ledger, { apiKey, eventId, apiBase = LUMA_PUBLIC_API_BASE, fetchImpl = fetch } = {}) {
   if (!apiKey) {
     return {
       ok: false,
       fallback: "csv",
       error: "missing-luma-api-key",
-      message: "LUMA_API_KEY is not set. Pass --fallback-csv <guests.csv> or run `import-luma <guests.csv>`.",
+      message: "LUMA_API_KEY is not set. Run `event-ops credits sync --csv <guests.csv>` with a Luma Guests export instead.",
     }
   }
   const targetEventId = eventId || ledger.config.lumaEventId
@@ -90,7 +81,7 @@ export async function syncLumaEventGuests(
     return {
       ok: false,
       error: "missing-event-id",
-      message: "Pass --event-id evt-... (or set --luma-event-id during init).",
+      message: "Pass --luma-event-id evt-... to `event-ops credits sync` or `event-ops credits init`.",
     }
   }
 

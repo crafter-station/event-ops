@@ -11,8 +11,8 @@ import {
   importCreditsCsv,
   importFeedbackCsv,
   importLumaCsv,
-} from "./core.mjs"
-import { syncLumaEventGuests } from "./luma-api.mjs"
+} from "../src/lib/ledger.mjs"
+import { syncLumaEventGuests } from "../src/lib/luma-api.mjs"
 
 test("canonicalEmail normalizes Gmail dots and +tags without altering delivery address", () => {
   assert.equal(canonicalEmail("A.L.I.C.E+codex@gmail.com"), "alice@gmail.com")
@@ -104,14 +104,11 @@ test("Re-importing Luma CSV preserves existing ChatGPT email and never overwrite
     [
       "guest_id,name,email,approval_status,checked_in_at,ChatGPT Email",
       "gst-1,Ana,ana@gmail.com,approved,2026-10-21T19:00:00Z,ana.original@gmail.com",
-    ].join("\n")
+    ].join("\n"),
   )
   importLumaCsv(
     ledger,
-    [
-      "guest_id,name,email,approval_status,checked_in_at,ChatGPT Email",
-      "gst-1,Ana,ana@gmail.com,approved,,attacker@evil.com",
-    ].join("\n")
+    ["guest_id,name,email,approval_status,checked_in_at,ChatGPT Email", "gst-1,Ana,ana@gmail.com,approved,,attacker@evil.com"].join("\n"),
   )
   assert.equal(ledger.guests["ana@gmail.com"].chatgptEmail, "ana.original@gmail.com")
   assert.equal(ledger.guests["ana@gmail.com"].checkedInAt, "2026-10-21T19:00:00Z")

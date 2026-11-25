@@ -1,71 +1,102 @@
 # event-ops
 
-Agent-first CLI and skills for running community tech events end to end: Luma triage, idempotent anti-abuse credit distribution, and battle-tested event ops playbooks.
+Send one credit code to every attendee who checked in, from your terminal or your coding agent.
 
-Zero external dependencies. Runs on **Node 18+** or **Bun**. Works with **Luma Plus API (`LUMA_API_KEY`)** and falls back seamlessly to **Luma CSV exports** on free plans.
+`event-ops` is a CLI for running meetups, workshops and hackathons. It syncs your Luma guests and gives each checked-in attendee exactly one code, even when someone registers twice. It also helps you decide who to approve, and it carries the checklist Codex Ambassadors built from their first events.
 
-## Try it in 1 second
+It has no dependencies and runs on Node 18+ or Bun. Try the sandbox at https://event-ops.crafter.run.
 
-Run the offline sandbox to see Luma import, external feedback gating, Gmail/ChatGPT duplicate blocking, reserve burn/replace, and CSV dispatch in action:
+## Install
 
 ```bash
-node skills/luma-credits/scripts/credit-desk.mjs demo
+npm i -g github:crafter-station/event-ops      # or bun add -g github:crafter-station/event-ops
+event-ops demo                                 # the full credit flow, offline
 ```
 
-## Why email-first?
+To give the CLI to your coding agent (Codex, Claude Code, Cursor and others), install the skill.
 
-Running a live claim web app on venue Wi-Fi breaks at 200+ attendees and invites email spoofing without auth. `luma-credits` solves the root problem with zero servers to crash:
+```bash
+npx skills add crafter-station/event-ops
+```
 
-1. **Volunteers use Luma's native Check-in Staff role** (no full guest list exposed, single source of truth for `checked_in_at`).
-2. **Identity travels through the verified inbox** (no public claim form to spoof or enumerate).
-3. **One idempotent local ledger** merges Luma (API or CSV) + optional Feedback CSV + OpenAI Credits CSV, blocks Gmail aliases (`a.b+1@gmail.com`) and shared ChatGPT emails, holds reserve codes for `burn`/replace, and dispatches via **Resend** or **mail-merge CSV** (100% resumable).
+The skill tells the agent to run `event-ops skills get core`, so its instructions always match the CLI version you installed.
+
+## Event day
+
+```bash
+event-ops credits init codex-lima-dec --luma-event-id evt-xxxx
+event-ops credits import codes ~/Downloads/codes.csv --reserve 5
+
+# after doors close
+event-ops credits sync                  # Luma API with LUMA_API_KEY, or --csv guests.csv
+event-ops credits status                # funnel, code pool and duplicate flags
+event-ops credits assign --commit       # run it without --commit first to preview
+event-ops credits send --from "You <you@domain>" --subject "Your Codex credits" --confirm
+```
+
+Without a Resend account, `event-ops credits export --mark-sent` writes a mail-merge CSV instead.
+
+When a code was already redeemed, run `event-ops credits burn attendee@email.com` and then `send --confirm` again. Only the replacement goes out.
+
+## How it keeps codes safe
+
+A claim page on venue Wi-Fi tends to fail at around 200 people, and anyone who knows another guest's email can claim their code. `event-ops` sends codes by email after the event instead.
+
+1. Volunteers check people in with the Luma Check-in Staff role. Luma keeps the only check-in record and the guest list stays hidden.
+2. Only guests who pass your gates get a code. The gates are `approved`, `checked-in` and `feedback`, and you choose any mix.
+3. Codes go to the verified inbox. Gmail dots and `+tags` count as the same address, and several Luma accounts that share one ChatGPT email get one code between them.
+4. Every write to the ledger is atomic. Re-syncing, late check-ins or a send that crashed halfway never assign or email twice, because each send uses a Resend idempotency key and a pending marker.
 
 ```text
-  Luma Plus API (LUMA_API_KEY) ──┐
-  or Luma Guests CSV (free)  ────┼──► Idempotent JSON Ledger ──► audit (dupe flags)
-  Optional Feedback CSV      ────┤           │                        │
-  OpenAI Credits CSV (+resv) ────┘           └──────────────────► assign --commit
-                                                                      │
-                                             Resend 1-to-1 (send) ◄───┴───► Mail-merge CSV (export)
+  Luma API or guests CSV ──┐
+  Feedback CSV (optional) ─┼──► local ledger ──► status ──► assign ──► send (Resend) or export (CSV)
+  Credit codes + reserve ──┘    ~/.event-ops                 preview     preview until --confirm
 ```
 
-## Real event quickstart
+## Commands
 
-```bash
-SCRIPT=skills/luma-credits/scripts/credit-desk.mjs
-LEDGER=/tmp/credit-desk/my-event/ledger.json
-
-# 1. Init with your gates (mix any of: approved, checked-in, feedback)
-node "$SCRIPT" init --ledger "$LEDGER" --event codex-lima --luma-event-id evt-xxxx --require checked-in,feedback
-
-# 2. Load guests (Luma API when LUMA_API_KEY is set, automatic CSV fallback otherwise) + credits
-LUMA_API_KEY=... node "$SCRIPT" sync-luma --ledger "$LEDGER" --fallback-csv ~/Downloads/guests.csv
-node "$SCRIPT" import-credits --ledger "$LEDGER" ~/Downloads/credits.csv --reserve 5
-
-# 3. Audit duplicates, assign atomically, and dispatch
-node "$SCRIPT" audit --ledger "$LEDGER"
-node "$SCRIPT" assign --ledger "$LEDGER" --commit
-node "$SCRIPT" export --ledger "$LEDGER" --out /tmp/credit-desk/my-event/dispatch.csv --mark-sent
-```
-
-## Skills included
-
-| Skill | What it does |
+| Command | What it does |
 |---|---|
-| [luma-credits](skills/luma-credits) | Luma API / CSV sync, optional feedback gate, Gmail/ChatGPT anti-abuse dedupe, reserve pool burn/replace, idempotent CSV or Resend dispatch. |
-| [luma-triage](skills/luma-triage) | Rank a Luma guest export into an approve list for remaining spots, with GitHub/web evidence labels and red-flag detection. |
-| [codex-event-ops](skills/codex-event-ops) | End-to-end operational checklist for Codex Community events (Luma setup, overbooking math, food/swag ratios, venue/outlets/security preflight, Reimbi & credits timelines, recap). |
+| `credits init <event>` | Create an event ledger and make it current |
+| `credits sync [--csv file]` | Pull guests and check-ins from the Luma API or a CSV export |
+| `credits import guests\|feedback\|codes <file>` | Import a CSV, with `--reserve N` for codes |
+| `credits status` | Show the funnel, the code pool and duplicate flags |
+| `credits assign [--commit]` | Plan one code per eligible guest, preview by default |
+| `credits burn <email\|code>` | Replace a broken code from the pool or the reserve |
+| `credits export [--mark-sent]` | Write a mail-merge CSV of assigned codes not yet sent |
+| `credits send --from … --subject … [--confirm]` | Email codes with Resend, preview by default |
+| `triage <guests.csv>` | Add GitHub and web evidence to pending signups |
+| `events list` and `events use <event>` | Switch between events |
+| `skills list` and `skills get <name>` | Print the agent guides bundled in the CLI |
+| `schema` | Print the command contract as JSON |
 
-## Install as agent skills (Codex / Claude Code)
+When the output is piped, or with `--json`, every command prints one JSON envelope.
 
-```bash
-git clone git@github.com:crafter-station/event-ops.git ~/Programming/crafter-station/event-ops
-for s in luma-triage luma-credits codex-event-ops; do
-  ln -s ~/Programming/crafter-station/event-ops/skills/$s ~/.claude/skills/$s   # Claude Code
-  ln -s ~/Programming/crafter-station/event-ops/skills/$s ~/.agents/skills/$s   # Codex and others
-done
+```json
+{ "ok": true, "command": "credits status", "data": { "counts": { "eligible": 64 } }, "nextSteps": ["event-ops credits assign"] }
 ```
 
-## Guest data safety
+Exit code 0 means success, 1 a runtime or upstream failure, 2 a usage error and 3 a missing precondition.
 
-Luma exports, credits CSVs, dispatch CSVs, and `ledger.json` contain PII and single-use codes. Keep them outside git (`/tmp/credit-desk/<event>/`). `.gitignore` blocks CSV and JSON files, but never store event data inside the repo.
+## Environment
+
+| Variable | Used by |
+|---|---|
+| `LUMA_API_KEY` | `credits sync`, with Luma Plus |
+| `RESEND_API_KEY` | `credits send --confirm` |
+| `EVENT_OPS_HOME` | Data folder, `~/.event-ops` by default |
+| `EVENT_OPS_EVENT` | Default event slug |
+
+## Guest data
+
+Ledgers, guest exports and code CSVs contain personal data and single-use codes. `event-ops` keeps them in `~/.event-ops/events/<slug>/` with `0600` permissions, outside your working folder. Do not commit them.
+
+## Develop
+
+```bash
+git clone https://github.com/crafter-station/event-ops && cd event-ops
+npm link            # puts event-ops on your PATH from source
+npm test
+```
+
+MIT. Built by [Crafter Station](https://crafter.run).
