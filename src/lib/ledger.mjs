@@ -1,6 +1,3 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
-import { dirname } from "node:path"
-
 export const VALID_GATES = new Set(["approved", "checked-in", "feedback"])
 
 export function parseCsv(text) {
@@ -72,7 +69,9 @@ export function formatCsv(headers, rows) {
 }
 
 export function normalizeEmail(raw) {
-  const s = String(raw ?? "").trim().toLowerCase()
+  const s = String(raw ?? "")
+    .trim()
+    .toLowerCase()
   if (!s || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return null
   return s
 }
@@ -110,12 +109,7 @@ export function parseRequireFlags(raw) {
   return [...new Set(parts)]
 }
 
-export function createLedger({
-  eventSlug,
-  lumaEventId = null,
-  require = ["checked-in"],
-  deliveryTarget = "luma",
-} = {}) {
+export function createLedger({ eventSlug, lumaEventId = null, require = ["checked-in"], deliveryTarget = "luma" } = {}) {
   if (!eventSlug) throw new Error("eventSlug is required")
   if (!["luma", "chatgpt"].includes(deliveryTarget)) {
     throw new Error(`Invalid --target "${deliveryTarget}". Valid: luma, chatgpt`)
@@ -134,18 +128,6 @@ export function createLedger({
     guests: {},
     codes: [],
   }
-}
-
-export function loadLedger(filePath) {
-  return JSON.parse(readFileSync(filePath, "utf8"))
-}
-
-export function saveLedger(filePath, ledger) {
-  ledger.updatedAt = new Date().toISOString()
-  mkdirSync(dirname(filePath), { recursive: true })
-  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`
-  writeFileSync(tmpPath, `${JSON.stringify(ledger, null, 2)}\n`, { mode: 0o600 })
-  renameSync(tmpPath, filePath)
 }
 
 function detectChatgptColumn(headers, records) {
@@ -175,10 +157,7 @@ export function importLumaCsv(ledger, csvText, { chatgptCol } = {}) {
     }
     const existing = ledger.guests[lumaEmail]
     const chatgptEmail = detectedChatgptCol ? normalizeEmail(row[detectedChatgptCol]) : null
-    const fullName =
-      row.name ||
-      [row.first_name, row.last_name].filter(Boolean).join(" ").trim() ||
-      lumaEmail.split("@")[0]
+    const fullName = row.name || [row.first_name, row.last_name].filter(Boolean).join(" ").trim() || lumaEmail.split("@")[0]
     const approvalStatus = (row.approval_status || "approved").toLowerCase()
     const checkedInAt = row.checked_in_at || null
     const rating = row.survey_response_rating || null
@@ -248,9 +227,7 @@ export function importFeedbackCsv(ledger, csvText, { emailCol, ratingCol, commen
   const { headers, records } = parseCsvObjects(csvText)
   if (!headers.length) throw new Error("Empty feedback CSV")
   const detectedEmailCol =
-    emailCol ??
-    headers.find((h) => /(chatgpt|openai|luma).*mail/i.test(h)) ??
-    headers.find((h) => /(email|mail|correo)/i.test(h))
+    emailCol ?? headers.find((h) => /(chatgpt|openai|luma).*mail/i.test(h)) ?? headers.find((h) => /(email|mail|correo)/i.test(h))
   if (!detectedEmailCol) throw new Error("Could not find email column in feedback CSV")
   const detectedRatingCol = ratingCol ?? headers.find((h) => /(rating|score|nps|stars|calific)/i.test(h))
   const detectedCommentCol = commentCol ?? headers.find((h) => /(feedback|comment|learn|takeaway|mejor|coment)/i.test(h))
@@ -330,6 +307,7 @@ export function poolStats(ledger) {
   let reserve = 0
   let assigned = 0
   let sent = 0
+  let sending = 0
   let burned = 0
   for (const c of ledger.codes) {
     if (c.status === "free") {
@@ -338,11 +316,12 @@ export function poolStats(ledger) {
     } else if (c.status === "assigned") {
       assigned++
       if (c.sentAt) sent++
+      else if (c.sendPendingAt) sending++
     } else if (c.status === "burned") {
       burned++
     }
   }
-  return { total: ledger.codes.length, free, reserve, assigned, sent, burned }
+  return { total: ledger.codes.length, free, reserve, assigned, sent, sending, burned }
 }
 
 export function getAssignedCode(ledger, guestId) {
@@ -395,9 +374,7 @@ export function auditLedger(ledger) {
     .filter(([, list]) => list.length > 1)
     .map(([canonicalChatgpt, lumaEmails]) => ({ canonicalChatgpt, lumaEmails }))
 
-  const sameNameMultiEmails = [...byName.entries()]
-    .filter(([, list]) => list.length > 1)
-    .map(([name, emails]) => ({ name, emails }))
+  const sameNameMultiEmails = [...byName.entries()].filter(([, list]) => list.length > 1).map(([name, emails]) => ({ name, emails }))
 
   const eligible = guests.filter((g) => isEligible(g, ledger.config.require))
   const missingChatgptEmail = eligible.filter((g) => !g.chatgptEmail).map((g) => g.lumaEmail)
@@ -452,10 +429,7 @@ export function assignCodes(ledger, { commit = false, includeReserve = false } =
   let poolIdx = 0
 
   for (const guest of candidates) {
-    if (
-      claimedCanon.has(guest.canonicalLumaEmail) ||
-      (guest.canonicalChatgptEmail && claimedCanon.has(guest.canonicalChatgptEmail))
-    ) {
+    if (claimedCanon.has(guest.canonicalLumaEmail) || (guest.canonicalChatgptEmail && claimedCanon.has(guest.canonicalChatgptEmail))) {
       blocked.push({ email: guest.lumaEmail, reason: "duplicate-identity" })
       continue
     }
@@ -501,8 +475,7 @@ export function burnAndReplace(ledger, query, reason = "reported-broken") {
   if (!codeRow) return { ok: false, error: "assigned-code-not-found" }
 
   const replacement =
-    ledger.codes.find((c) => c.status === "free" && !c.reserve) ??
-    ledger.codes.find((c) => c.status === "free" && c.reserve)
+    ledger.codes.find((c) => c.status === "free" && !c.reserve) ?? ledger.codes.find((c) => c.status === "free" && c.reserve)
   if (!replacement) return { ok: false, error: "no-replacement-available" }
 
   const now = new Date().toISOString()
@@ -524,12 +497,13 @@ export function burnAndReplace(ledger, query, reason = "reported-broken") {
   }
 }
 
-export function exportDispatchRows(ledger, { onlyUnsent = true, markSent = false } = {}) {
+export function exportDispatchRows(ledger, { onlyUnsent = true, markSent = false, includePending = false } = {}) {
   const now = new Date().toISOString()
   const rows = []
   for (const c of ledger.codes) {
     if (c.status !== "assigned" || !c.assignedTo) continue
     if (onlyUnsent && c.sentAt) continue
+    if (onlyUnsent && c.sendPendingAt && !includePending) continue
     const g = ledger.guests[c.assignedTo]
     if (!g) continue
     rows.push({

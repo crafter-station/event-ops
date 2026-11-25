@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>event-ops · One credit code per guest who came</title>
+  <meta name="description" content="After your event, every guest who came gets exactly one credit code by email. An open-source CLI and agent skills for community tech events.">
+  <link rel="canonical" href="https://event-ops.crafter.run/">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="event-ops">
+  <meta property="og:url" content="https://event-ops.crafter.run/">
+  <meta property="og:title" content="event-ops">
+  <meta property="og:description" content="After your event, every guest who came gets exactly one credit code by email.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="event-ops">
+  <meta name="twitter:description" content="After your event, every guest who came gets exactly one credit code by email.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0a'/%3E%3Crect x='8' y='8' width='16' height='16' fill='%23F0ECE4'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://ui-sdk.dev" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://ui-sdk.dev/web@0.1.0-beta.17.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="https://ui-sdk.dev/web@0.1.0-beta.17.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#sandbox">Skip to the demo</a>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="brand" href="#top" aria-label="event-ops home"><span class="brand-mark" aria-hidden="true"></span>event-ops</a>
+      <nav aria-label="Primary">
+        <a href="#sandbox">Demo</a>
+        <a href="#commands">Commands</a>
+        <a href="#why">Why email</a>
+        <a href="https://github.com/crafter-station/event-ops">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Open-source CLI and agent skills for community tech events</p>
+        <h1 id="hero-title">event-ops</h1>
+        <p class="pitch">After your event, every guest who came gets exactly one credit code by email.</p>
+        <p class="pitch-sub">Run it from your terminal or hand it to your coding agent.</p>
+        <div class="hero-actions">
+          <button type="button" class="btn btn-primary" data-copy="prompt">Copy prompt to get started</button>
+          <a class="btn" href="#sandbox">Try the demo</a>
+        </div>
+        <p class="hero-note">Paste it into Codex, Claude Code or Cursor. Your agent installs the CLI and walks you through your event. <a href="https://github.com/crafter-station/event-ops">View on GitHub</a></p>
+        <ul class="facts" aria-label="Requirements">
+          <li>Node 18+ or Bun</li>
+          <li>Zero dependencies</li>
+          <li>Guests from Luma or a CSV</li>
+          <li>Sends with Resend or a mail merge</li>
+        </ul>
+      </div>
+
+      <div class="install" aria-labelledby="install-title">
+        <div class="install-head">
+          <h2 id="install-title" class="install-title">Get started</h2>
+          <ui-segmented-control id="pm" class="pm" aria-label="Package manager" default-value="npm" loop="false">
+            <ui-segmented-control-indicator></ui-segmented-control-indicator>
+            <ui-segmented-control-item value="npm">npm</ui-segmented-control-item>
+            <ui-segmented-control-item value="bun">bun</ui-segmented-control-item>
+          </ui-segmented-control>
+        </div>
+        <div class="prompt-block">
+          <div class="prompt-head">
+            <span class="cmd-label">Prompt for your coding agent</span>
+            <button type="button" class="copy" data-copy="prompt" aria-label="Copy prompt">Copy</button>
+          </div>
+          <pre class="prompt-text" data-prompt></pre>
+        </div>
+        <p class="cmds-lead">Or set it up yourself</p>
+        <ol class="cmds">
+          <li class="cmd">
+            <span class="cmd-label">Install the CLI</span>
+            <div class="cmd-body">
+              <code data-cmd="install">npm i -g github:crafter-station/event-ops</code>
+              <button type="button" class="copy" data-copy="install" aria-label="Copy install command">Copy</button>
+            </div>
+          </li>
+          <li class="cmd">
+            <span class="cmd-label">Add the skills to your agent</span>
+            <div class="cmd-body">
+              <code data-cmd="skills">npx skills add crafter-station/event-ops</code>
+              <button type="button" class="copy" data-copy="skills" aria-label="Copy skills command">Copy</button>
+            </div>
+          </li>
+          <li class="cmd">
+            <span class="cmd-label">Try it offline</span>
+            <div class="cmd-body">
+              <code data-cmd="demo">event-ops demo</code>
+              <button type="button" class="copy" data-copy="demo" aria-label="Copy demo command">Copy</button>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="sandbox" class="section sandbox" aria-labelledby="step-title">
+      <div class="wrap">
+        <div class="sandbox-head">
+          <p class="eyebrow">Demo with ten made-up guests</p>
+          <p class="thesis">After the event, every guest who really came gets exactly one code. Duplicates and no&#8209;shows don't.</p>
+          <p class="meta">Every result comes from the CLI's own <code>ledger.mjs</code>, running in this tab (sha256 <code>{{LEDGER_SHA}}</code>, {{LEDGER_LINES}} lines).</p>
+        </div>
+
+        <ui-collapsible id="cli" class="sb">
+          <nav class="stepper-wrap" aria-label="Demo steps">
+            <ol class="stepper" id="stepper">
+              <li><button type="button" data-goto="1"><span class="stepper-n" aria-hidden="true">1</span><span class="stepper-label">Guest list</span></button></li>
+              <li><button type="button" data-goto="2"><span class="stepper-n" aria-hidden="true">2</span><span class="stepper-label">Event night</span></button></li>
+              <li><button type="button" data-goto="3"><span class="stepper-n" aria-hidden="true">3</span><span class="stepper-label">Give out codes</span></button></li>
+              <li><button type="button" data-goto="4"><span class="stepper-n" aria-hidden="true">4</span><span class="stepper-label">Fix a code</span></button></li>
+              <li><button type="button" data-goto="5"><span class="stepper-n" aria-hidden="true">5</span><span class="stepper-label">Send</span></button></li>
+            </ol>
+          </nav>
+
+          <article class="story" id="story">
+            <p class="step-count" id="step-count">Step 1 of 5</p>
+            <h2 class="step-title" id="step-title" tabindex="-1">The guest list</h2>
+            <p class="step-copy" id="step-copy"></p>
+            <div class="step-body" id="step-body"></div>
+            <div class="step-nav">
+              <button type="button" class="btn" id="back">Back</button>
+              <div class="step-nav-end">
+                <button type="button" class="btn" id="secondary" hidden></button>
+                <button type="button" class="btn btn-primary" id="primary">Event night</button>
+              </div>
+            </div>
+          </article>
+
+          <div class="cli-toggle">
+            <ui-collapsible-trigger>
+              <button type="button" class="btn cli-trigger">
+                <span class="cli-glyph" aria-hidden="true">&gt;_</span>
+                <span data-show="closed">Show the CLI</span>
+                <span data-show="open">Hide the CLI</span>
+              </button>
+            </ui-collapsible-trigger>
+          </div>
+
+          <ui-collapsible-panel class="cli-panel" keep-mounted hidden>
+            <section class="cli-inner" aria-labelledby="cli-title">
+              <div class="cli-head">
+                <h3 id="cli-title" class="cli-title">The same step in your terminal</h3>
+                <span class="cli-path">~/.event-ops/events/codex-lima-demo</span>
+              </div>
+              <div class="cli-body" id="cli-body" tabindex="0" aria-label="Commands and JSON output for this step"></div>
+            </section>
+          </ui-collapsible-panel>
+        </ui-collapsible>
+
+        <ui-collapsible id="advanced" class="advanced">
+          <ui-collapsible-trigger>
+            <button type="button" class="adv-trigger">Advanced settings</button>
+          </ui-collapsible-trigger>
+          <ui-collapsible-panel class="adv-panel" keep-mounted hidden>
+            <div class="adv-grid">
+              <div class="adv-field">
+                <span class="adv-label" id="gates-label">Who qualifies</span>
+                <ui-checkbox-group id="gates" class="adv-row" aria-labelledby="gates-label" default-value="approved,checked-in">
+                  <label class="check"><ui-checkbox value="approved"><ui-checkbox-indicator></ui-checkbox-indicator></ui-checkbox>Approved on Luma</label>
+                  <label class="check"><ui-checkbox value="checked-in"><ui-checkbox-indicator></ui-checkbox-indicator></ui-checkbox>Checked in</label>
+                  <label class="check"><ui-checkbox value="feedback"><ui-checkbox-indicator></ui-checkbox-indicator></ui-checkbox>Sent feedback</label>
+                </ui-checkbox-group>
+                <span class="adv-hint">Maps to <code>--require</code></span>
+              </div>
+              <div class="adv-field">
+                <ui-select id="target" default-value="luma">
+                  <ui-select-label class="adv-label">Send codes to</ui-select-label>
+                  <ui-select-trigger><button type="button" class="sel"><ui-select-value></ui-select-value></button></ui-select-trigger>
+                  <ui-select-content>
+                    <ui-select-item value="luma">Their Luma email<ui-select-item-indicator></ui-select-item-indicator></ui-select-item>
+                    <ui-select-item value="chatgpt">Their ChatGPT email<ui-select-item-indicator></ui-select-item-indicator></ui-select-item>
+                  </ui-select-content>
+                </ui-select>
+                <span class="adv-hint">Maps to <code>--target</code></span>
+              </div>
+              <div class="adv-field">
+                <span class="adv-label" id="codes-label">Codes you have</span>
+                <div class="adv-row" role="group" aria-labelledby="codes-label">
+                  <label class="num">Total <input type="number" id="pool-size" min="1" max="30" value="8" inputmode="numeric"></label>
+                  <label class="num">Kept in reserve <input type="number" id="pool-reserve" min="0" max="30" value="2" inputmode="numeric"></label>
+                </div>
+                <span class="adv-hint">Reserve codes stay back for replacements</span>
+              </div>
+              <div class="adv-field adv-reset">
+                <button type="button" class="btn" id="reset">Reset the demo</button>
+              </div>
+            </div>
+          </ui-collapsible-panel>
+        </ui-collapsible>
+
+        <p class="sr-only" id="announce" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="commands" class="section" aria-labelledby="commands-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="commands-title">One binary for every step of event night</h2>
+          <p class="lede">Every command prints JSON when piped or with <code>--json</code>, so an agent can drive it. Commands that write stay in dry run until you pass <code>--commit</code> or <code>--confirm</code>.</p>
+        </div>
+        <div class="table-wrap" role="region" aria-labelledby="commands-title" tabindex="0">
+          <table class="commands">
+            <thead><tr><th scope="col">Command</th><th scope="col">What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>event-ops credits init &lt;event&gt; [--luma-event-id evt_…] [--require checked-in,feedback] [--target luma|chatgpt]</code></td><td>Creates the event ledger with its rules and delivery target.</td></tr>
+              <tr><td><code>credits sync [--csv guests.csv]</code></td><td>Pulls guests from the Luma API with <code>LUMA_API_KEY</code>. On free plans, merge a Luma CSV export instead.</td></tr>
+              <tr><td><code>credits import guests|feedback|codes &lt;file&gt; [--reserve N]</code></td><td>Merges a guest export, a feedback export or an OpenAI credits CSV. <code>--reserve</code> holds codes back for replacements.</td></tr>
+              <tr><td><code>credits status</code></td><td>Prints counts, pool stats and possible duplicates such as Gmail aliases or shared ChatGPT emails.</td></tr>
+              <tr><td><code>credits assign [--commit]</code></td><td>Plans one code per person who qualifies. Writes only with <code>--commit</code>.</td></tr>
+              <tr><td><code>credits burn &lt;email|code&gt;</code></td><td>Retires a broken code and assigns a fresh one, from unused codes first and then the reserve.</td></tr>
+              <tr><td><code>credits export [--out file] [--mark-sent]</code></td><td>Writes a mail-merge CSV of unsent codes. With <code>--mark-sent</code>, the next run skips what already went out.</td></tr>
+              <tr><td><code>credits send --from … --subject … [--confirm]</code></td><td>Sends one email per code through Resend. Shows a preview until you pass <code>--confirm</code>.</td></tr>
+              <tr><td><code>triage &lt;guests.csv&gt;</code></td><td>Ranks a Luma guest export for the last open spots, using GitHub and web evidence.</td></tr>
+              <tr><td><code>skills list|get &lt;name&gt;</code></td><td>Prints a bundled skill for your agent, such as credits or triage.</td></tr>
+              <tr><td><code>events list|use &lt;slug&gt;</code></td><td>Lists event ledgers and switches the active one.</td></tr>
+              <tr><td><code>schema</code></td><td>Describes every command and flag in JSON for agents.</td></tr>
+              <tr><td><code>demo</code></td><td>Runs the full flow offline with made-up data.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="why" class="section" aria-labelledby="why-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="why-title">Codes go out by email after the doors close</h2>
+          <p class="lede">A live claim page can fail on venue Wi-Fi and invites fake emails. event-ops sends each code to the inbox the guest registered with.</p>
+        </div>
+        <ol class="why">
+          <li>
+            <h3>Volunteers scan with Luma</h3>
+            <p>Door volunteers use Luma's own check-in role. They see tickets, and the check-in time lives in one place.</p>
+          </li>
+          <li>
+            <h3>The inbox proves who they are</h3>
+            <p>The code lands where the guest registered, so a stranger has nothing to claim.</p>
+          </li>
+          <li>
+            <h3>The ledger is a local file</h3>
+            <p>You give out and send codes after the event, from your laptop, on any connection.</p>
+          </li>
+          <li>
+            <h3>Codes wait for check-in</h3>
+            <p>Only guests who were scanned qualify. Add the feedback rule and codes also wait for the survey.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <span>MIT License</span>
+      <a href="https://github.com/crafter-station/event-ops">github.com/crafter-station/event-ops</a>
+      <span>By <a href="https://github.com/crafter-station">Crafter Station</a></span>
+    </div>
+  </footer>
+
+  <ui-toast-region side="bottom" align="end">
+    <template>
+      <ui-toast>
+        <div class="toast-body">
+          <ui-toast-title></ui-toast-title>
+          <ui-toast-description></ui-toast-description>
+        </div>
+      </ui-toast>
+    </template>
+  </ui-toast-region>
+</body>
+</html>
