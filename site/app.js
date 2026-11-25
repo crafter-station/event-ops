@@ -131,7 +131,7 @@ const SEED = [
 const OUTCOME = {
   code: { tone: "ok" },
   "dup-email": { tone: "bad", label: "Same person, second email" },
-  "shared-chatgpt": { tone: "bad", label: "Shares a ChatGPT account" },
+  "shared-chatgpt": { tone: "bad", label: "Same ChatGPT email" },
   "no-show": { tone: "muted", label: "Didn't show up" },
   waitlist: { tone: "muted", label: "On the waitlist" },
   "no-feedback": { tone: "muted", label: "No feedback yet" },
